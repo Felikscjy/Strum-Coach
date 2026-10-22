@@ -3,3 +3,4 @@ node_modules/
 # your own charts (transcribed from published scores) stay local
 src/songs.private.js
 *.png
+src/lyrics.private.js

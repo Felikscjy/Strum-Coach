@@ -421,6 +421,7 @@ textarea#lyr{min-height:160px;font-family:var(--f-lyric)}
           <button class="ghost" id="del">删除这首</button>
           <label class="ghost" for="chartFile" style="cursor:pointer">导入谱面文件</label><input type="file" id="chartFile" accept=".txt,.chart,text/plain" hidden>
           <button class="ghost" id="copyChart">复制谱面</button>
+          <button class="ghost" id="exportLyr" title="把浏览器里保存的歌词导出成 src/lyrics.private.js">导出歌词文件</button>
           <button class="ghost" id="dlChart" hidden>下载谱面</button>
           <span class="err" id="err"></span></div>
       </div>
@@ -895,7 +896,7 @@ function renderSongSel(){
 function loadSong(id){
   if (playing) stop();
   curId = id; store.set('cur', id);
-  $('src').value = srcFor(id); $('lyr').value = store.get('lyr:'+id, '');
+  $('src').value = srcFor(id); $('lyr').value = store.get('lyr:'+id, null) ?? (window.STRUM_PRIVATE_LYRICS || {})[id] ?? '';
   build($('src').value, $('lyr').value);
   renderSongSel();
 }
@@ -1966,6 +1967,25 @@ const standalone = (() => { try { return window.self === window.top; } catch(e){
     const id = 'u' + Date.now().toString(36);
     store.set('customs', [...customs(), id]);
     applyEditor(id); $('editor').open = true;
+  };
+  $('exportLyr').onclick = async () => {
+    const all = {...(window.STRUM_PRIVATE_LYRICS || {})};
+    for (const id of [...LIBRARY.map(x => x.id), ...customs()]){ const v = store.get('lyr:'+id, null); if (v != null && v.trim()) all[id] = v; }
+    if (curId && $('lyr').value.trim()) all[curId] = $('lyr').value;
+    const ids = Object.keys(all);
+    if (!ids.length){ $('err').textContent = '还没有保存过歌词'; return; }
+    const text = '/* 本地歌词缓存，已在 .gitignore 里，不会被提交。键是歌曲 id，值是按演唱顺序的歌词。 */\nwindow.STRUM_PRIVATE_LYRICS = {\n' +
+      ids.map(id => `  ${JSON.stringify(id)}: ${JSON.stringify(all[id])},`).join('\n') + '\n};\n';
+    if (standalone){
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([text], {type:'text/javascript'}));
+      a.download = 'lyrics.private.js'; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      $('err').textContent = `已导出 ${ids.length} 首，放到 src/ 目录下`;
+    } else {
+      try { await navigator.clipboard.writeText(text); $('err').textContent = `已复制 ${ids.length} 首的歌词文件内容，粘贴进 src/lyrics.private.js`; }
+      catch(e){ $('err').textContent = '复制失败，请在单独打开的页面里导出'; }
+    }
   };
   $('copyChart').onclick = async () => {
     try { await navigator.clipboard.writeText($('src').value); $('err').textContent = '谱面已复制'; }

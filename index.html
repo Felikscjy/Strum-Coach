@@ -141,6 +141,7 @@
           <button class="ghost" id="del">删除这首</button>
           <label class="ghost" for="chartFile" style="cursor:pointer">导入谱面文件</label><input type="file" id="chartFile" accept=".txt,.chart,text/plain" hidden>
           <button class="ghost" id="copyChart">复制谱面</button>
+          <button class="ghost" id="exportLyr" title="把浏览器里保存的歌词导出成 src/lyrics.private.js">导出歌词文件</button>
           <button class="ghost" id="dlChart" hidden>下载谱面</button>
           <span class="err" id="err"></span></div>
       </div>
@@ -178,6 +179,7 @@ rh: D---D-DUD-D-D-DU</pre>
 <script src="src/chart.js"></script>
 <script src="src/songs.js"></script>
 <script src="src/songs.private.js" onerror="this.remove()"></script>
+<script src="src/lyrics.private.js" onerror="this.remove()"></script>
 <script src="src/app.js"></script>
 </body>
 </html>
