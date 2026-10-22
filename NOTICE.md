@@ -21,6 +21,15 @@ The rhythm, chord and arrangement data for 程艾影 and 爱错 were transcribed
 大老师 (da-tab) and 小LV吉他 / 革命吉他 respectively, and are included as demos with the permission of
 the score authors. They are not covered by the MIT license of this project. No lyrics are included.
 
+## Demo lyrics (`src/lyrics.js`)
+
+歌词不属于本项目的 MIT 许可，版权归各自的作词人和版权方。收录的演示歌词均已获授权：
+
+- 《程艾影》歌词：经 【授权方名称】 授权，仅作为本工具的演示使用（【授权日期】）
+- 《爱错》歌词：经 【授权方名称】 授权，仅作为本工具的演示使用（【授权日期】）
+
+如有疑问请通过 GitHub Issues 联系，相关内容会立即处理。
+
 ## Fonts
 
 The page loads Barlow Condensed, Noto Sans SC and Noto Serif SC from Google Fonts at runtime

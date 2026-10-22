@@ -58,6 +58,7 @@ src/app.js            播放、调度、渲染、键盘/麦克风判定、录音
 src/samples.js        12 个吉他采样（base64），见 NOTICE.md
 src/songs.js          内置的演示曲
 src/songs.private.js  你自己的谱（不提交）
+src/lyrics.js         公开的演示歌词（需要授权，见 NOTICE.md）
 src/lyrics.private.js 你自己的歌词缓存（不提交，模板见 lyrics.private.example.js）
 scripts/build.mjs     打包成单文件
 scripts/check-charts.mjs  校验谱面

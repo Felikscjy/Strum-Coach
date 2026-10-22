@@ -31,7 +31,7 @@ function renderSongSel(){
 function loadSong(id){
   if (playing) stop();
   curId = id; store.set('cur', id);
-  $('src').value = srcFor(id); $('lyr').value = store.get('lyr:'+id, null) ?? (window.STRUM_PRIVATE_LYRICS || {})[id] ?? '';
+  $('src').value = srcFor(id); $('lyr').value = store.get('lyr:'+id, null) ?? bundledLyrics()[id] ?? '';
   build($('src').value, $('lyr').value);
   renderSongSel();
 }
@@ -1080,6 +1080,7 @@ $('lyr').oninput = () => {
   }, 300);
 };
 
+const bundledLyrics = () => ({...(window.STRUM_PRIVATE_LYRICS || {}), ...(window.STRUM_LYRICS || {})});
 const standalone = (() => { try { return window.self === window.top; } catch(e){ return false; } })();
 (function setupChrome(){
   const g = $('guide'), hb = $('helpBtn');
@@ -1104,21 +1105,21 @@ const standalone = (() => { try { return window.self === window.top; } catch(e){
     applyEditor(id); $('editor').open = true;
   };
   $('exportLyr').onclick = async () => {
-    const all = {...(window.STRUM_PRIVATE_LYRICS || {})};
+    const all = {...bundledLyrics()};
     for (const id of [...LIBRARY.map(x => x.id), ...customs()]){ const v = store.get('lyr:'+id, null); if (v != null && v.trim()) all[id] = v; }
     if (curId && $('lyr').value.trim()) all[curId] = $('lyr').value;
     const ids = Object.keys(all);
     if (!ids.length){ $('err').textContent = '还没有保存过歌词'; return; }
-    const text = '/* 本地歌词缓存，已在 .gitignore 里，不会被提交。键是歌曲 id，值是按演唱顺序的歌词。 */\nwindow.STRUM_PRIVATE_LYRICS = {\n' +
-      ids.map(id => `  ${JSON.stringify(id)}: ${JSON.stringify(all[id])},`).join('\n') + '\n};\n';
+    const text = '/* 歌词文件：可以存成 src/lyrics.js（公开，需要有歌词授权）或 src/lyrics.private.js（只在本地）。\n   键是歌曲 id，值是按演唱顺序的歌词。 */\nwindow.STRUM_LYRICS = Object.assign(window.STRUM_LYRICS || {}, {\n' +
+      ids.map(id => `  ${JSON.stringify(id)}: ${JSON.stringify(all[id])},`).join('\n') + '\n});\n';
     if (standalone){
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([text], {type:'text/javascript'}));
       a.download = 'lyrics.private.js'; a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-      $('err').textContent = `已导出 ${ids.length} 首，放到 src/ 目录下`;
+      $('err').textContent = `已导出 ${ids.length} 首，存成 src/lyrics.js 或 src/lyrics.private.js`;
     } else {
-      try { await navigator.clipboard.writeText(text); $('err').textContent = `已复制 ${ids.length} 首的歌词文件内容，粘贴进 src/lyrics.private.js`; }
+      try { await navigator.clipboard.writeText(text); $('err').textContent = `已复制 ${ids.length} 首的歌词文件内容，粘贴进 src/lyrics.js 或 src/lyrics.private.js`; }
       catch(e){ $('err').textContent = '复制失败，请在单独打开的页面里导出'; }
     }
   };
