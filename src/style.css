@@ -110,6 +110,16 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
 .meta b{color:var(--cue);font-weight:700}
 .songSel{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 8px;font-size:13px;max-width:200px}
 .transport{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.demoBtn{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:999px;background:var(--surface);padding:6px 16px 6px 10px;line-height:1.15;text-align:left}
+.demoBtn svg{width:24px;height:24px;flex:none;fill:var(--muted)}
+.demoBtn svg .w{fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;opacity:.35}
+.demoBtn span{display:flex;flex-direction:column}
+.demoBtn b{font-size:14px}
+.demoBtn small{font-size:11px;color:var(--muted)}
+.demoBtn[aria-pressed="true"]{border-color:var(--cue);background:var(--cue-soft)}
+.demoBtn[aria-pressed="true"] svg{fill:var(--cue)}
+.demoBtn[aria-pressed="true"] svg .w{stroke:var(--cue);opacity:1}
+.demoBtn[aria-pressed="true"] b,.demoBtn[aria-pressed="true"] small{color:var(--cue)}
 .play{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;background:var(--accent);color:var(--surface);padding:10px 22px;font-weight:700;font-size:15px}
 .play svg{width:14px;height:14px;fill:currentColor}
 .bpm{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 14px}

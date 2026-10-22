@@ -121,6 +121,16 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
 .meta b{color:var(--cue);font-weight:700}
 .songSel{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 8px;font-size:13px;max-width:200px}
 .transport{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.demoBtn{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:999px;background:var(--surface);padding:6px 16px 6px 10px;line-height:1.15;text-align:left}
+.demoBtn svg{width:24px;height:24px;flex:none;fill:var(--muted)}
+.demoBtn svg .w{fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;opacity:.35}
+.demoBtn span{display:flex;flex-direction:column}
+.demoBtn b{font-size:14px}
+.demoBtn small{font-size:11px;color:var(--muted)}
+.demoBtn[aria-pressed="true"]{border-color:var(--cue);background:var(--cue-soft)}
+.demoBtn[aria-pressed="true"] svg{fill:var(--cue)}
+.demoBtn[aria-pressed="true"] svg .w{stroke:var(--cue);opacity:1}
+.demoBtn[aria-pressed="true"] b,.demoBtn[aria-pressed="true"] small{color:var(--cue)}
 .play{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;background:var(--accent);color:var(--surface);padding:10px 22px;font-weight:700;font-size:15px}
 .play svg{width:14px;height:14px;fill:currentColor}
 .bpm{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 14px}
@@ -304,6 +314,7 @@ textarea#lyr{min-height:160px;font-family:var(--f-lyric)}
     <div class="transport">
       <div class="seg-btns modeSw" id="practiceBtns">
         <button data-v="view" aria-pressed="true">跟唱</button><button data-v="keys" aria-pressed="false">右手按键</button><button data-v="drill" aria-pressed="false">节奏练习</button></div>
+      <button class="demoBtn no-drill" id="demoBtn" aria-pressed="false" title="让工具把右手弹出来给你听"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w" d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"/></svg><span><b>伴奏示范</b><small id="demoState">关</small></span></button>
       <button class="play" id="playBtn" aria-label="开始"><svg viewBox="0 0 10 10"><path d="M1 0l9 5-9 5z"/></svg><span>开始</span></button>
       <div class="bpm"><b id="bpmVal">80</b><span>BPM</span>
         <button id="bpmDown" aria-label="减慢">−</button><button id="bpmUp" aria-label="加快">+</button></div>
@@ -376,7 +387,6 @@ textarea#lyr{min-height:160px;font-family:var(--f-lyric)}
           <option value="D---D-DUD-D-D-DU">十六分扫弦</option>
           <option value="D-D-D-D-">四分全下</option>
         </select></div>
-      <label class="chk"><input type="checkbox" id="demo">伴奏示范</label>
     </div></div>
     <div class="grp only-keys"><h4>判定</h4><div class="gi">
       <div class="ctl"><div class="seg-btns" id="inputBtns">
@@ -1804,7 +1814,8 @@ function syncControls(){
   $('speed').value = S.speed; $('speedVal').textContent = S.speed + '%';
   $('calib').value = S.calib; $('calibVal').textContent = S.calib + 'ms';
   $('trainer').checked = S.trainer; $('cueSound').checked = S.cue; $('countIn').checked = S.countIn;
-  $('eighths').checked = S.eighths; $('repeat').checked = S.repeat; $('demo').checked = S.demo;
+  $('eighths').checked = S.eighths; $('repeat').checked = S.repeat;
+  $('demoBtn').setAttribute('aria-pressed', S.demo); $('demoState').textContent = S.demo ? '开' : '关';
   [...$('warnBtns').children].forEach(b => b.setAttribute('aria-pressed', +b.dataset.v===S.warn));
   [...$('modeBtns').children].forEach(b => b.setAttribute('aria-pressed', b.dataset.v===S.mode));
   [...$('practiceBtns').children].forEach(b => b.setAttribute('aria-pressed', b.dataset.v===S.practice));
@@ -1843,8 +1854,9 @@ $('bpmDown').onclick = () => setBpm(S.bpm-4);
 $('bpmUp').onclick = () => setBpm(S.bpm+4);
 $('speed').oninput = e => { S.speed = +e.target.value; $('speedVal').textContent = S.speed+'%'; store.set('speed',S.speed); };
 $('calib').oninput = e => { S.calib = +e.target.value; $('calibVal').textContent = S.calib+'ms'; store.set('calib',S.calib); };
-for (const [id,key] of [['trainer','trainer'],['cueSound','cue'],['countIn','countIn'],['eighths','eighths'],['repeat','repeat'],['demo','demo']])
+for (const [id,key] of [['trainer','trainer'],['cueSound','cue'],['countIn','countIn'],['eighths','eighths'],['repeat','repeat']])
   $(id).onchange = e => { S[key] = e.target.checked; store.set(key, S[key]); };
+$('demoBtn').onclick = e => { e.currentTarget.blur(); S.demo = !S.demo; store.set('demo', S.demo); syncControls(); };
 $('warnBtns').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.warn = +b.dataset.v; store.set('warn',S.warn); syncControls(); };
 $('modeBtns').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.mode = b.dataset.v; store.set('mode',S.mode); syncControls(); };
 $('practiceBtns').onclick = e => {

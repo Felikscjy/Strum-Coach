@@ -950,7 +950,8 @@ function syncControls(){
   $('speed').value = S.speed; $('speedVal').textContent = S.speed + '%';
   $('calib').value = S.calib; $('calibVal').textContent = S.calib + 'ms';
   $('trainer').checked = S.trainer; $('cueSound').checked = S.cue; $('countIn').checked = S.countIn;
-  $('eighths').checked = S.eighths; $('repeat').checked = S.repeat; $('demo').checked = S.demo;
+  $('eighths').checked = S.eighths; $('repeat').checked = S.repeat;
+  $('demoBtn').setAttribute('aria-pressed', S.demo); $('demoState').textContent = S.demo ? '开' : '关';
   [...$('warnBtns').children].forEach(b => b.setAttribute('aria-pressed', +b.dataset.v===S.warn));
   [...$('modeBtns').children].forEach(b => b.setAttribute('aria-pressed', b.dataset.v===S.mode));
   [...$('practiceBtns').children].forEach(b => b.setAttribute('aria-pressed', b.dataset.v===S.practice));
@@ -989,8 +990,9 @@ $('bpmDown').onclick = () => setBpm(S.bpm-4);
 $('bpmUp').onclick = () => setBpm(S.bpm+4);
 $('speed').oninput = e => { S.speed = +e.target.value; $('speedVal').textContent = S.speed+'%'; store.set('speed',S.speed); };
 $('calib').oninput = e => { S.calib = +e.target.value; $('calibVal').textContent = S.calib+'ms'; store.set('calib',S.calib); };
-for (const [id,key] of [['trainer','trainer'],['cueSound','cue'],['countIn','countIn'],['eighths','eighths'],['repeat','repeat'],['demo','demo']])
+for (const [id,key] of [['trainer','trainer'],['cueSound','cue'],['countIn','countIn'],['eighths','eighths'],['repeat','repeat']])
   $(id).onchange = e => { S[key] = e.target.checked; store.set(key, S[key]); };
+$('demoBtn').onclick = e => { e.currentTarget.blur(); S.demo = !S.demo; store.set('demo', S.demo); syncControls(); };
 $('warnBtns').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.warn = +b.dataset.v; store.set('warn',S.warn); syncControls(); };
 $('modeBtns').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.mode = b.dataset.v; store.set('mode',S.mode); syncControls(); };
 $('practiceBtns').onclick = e => {

@@ -34,6 +34,7 @@
     <div class="transport">
       <div class="seg-btns modeSw" id="practiceBtns">
         <button data-v="view" aria-pressed="true">跟唱</button><button data-v="keys" aria-pressed="false">右手按键</button><button data-v="drill" aria-pressed="false">节奏练习</button></div>
+      <button class="demoBtn no-drill" id="demoBtn" aria-pressed="false" title="让工具把右手弹出来给你听"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w" d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"/></svg><span><b>伴奏示范</b><small id="demoState">关</small></span></button>
       <button class="play" id="playBtn" aria-label="开始"><svg viewBox="0 0 10 10"><path d="M1 0l9 5-9 5z"/></svg><span>开始</span></button>
       <div class="bpm"><b id="bpmVal">80</b><span>BPM</span>
         <button id="bpmDown" aria-label="减慢">−</button><button id="bpmUp" aria-label="加快">+</button></div>
@@ -106,7 +107,6 @@
           <option value="D---D-DUD-D-D-DU">十六分扫弦</option>
           <option value="D-D-D-D-">四分全下</option>
         </select></div>
-      <label class="chk"><input type="checkbox" id="demo">伴奏示范</label>
     </div></div>
     <div class="grp only-keys"><h4>判定</h4><div class="gi">
       <div class="ctl"><div class="seg-btns" id="inputBtns">
