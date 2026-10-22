@@ -10,12 +10,12 @@
 
 不需要安装，不需要后端，所有数据存在你自己的浏览器里。
 
-**在线使用：<https://felikscjy.github.io/strum-coach/>**
+**在线使用：<https://felikscjy.github.io/Strum-Coach/>**
 
 ## 快速开始
 
 ```bash
-git clone https://github.com/Felikscjy/strum-coach.git
+git clone https://github.com/Felikscjy/Strum-Coach.git
 cd strum-coach
 open index.html          # 或者直接双击，用 Chrome / Edge 打开
 ```
