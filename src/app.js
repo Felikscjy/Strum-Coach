@@ -53,6 +53,7 @@ function build(src, lyr){
   meta.push(meters.map(m => `${m}/4`).join(' + '));
   if (song.capo) meta.push(`<b>变调夹 ${song.capo} 品</b>`);
   meta.push(`${song.bars.length} 小节`);
+  if (song.source) meta.push(`谱：${esc(song.source)}`);
   $('songMeta').innerHTML = meta.join(' · ');
   $('beatDots').innerHTML = Array.from({length:song.beats}, (_,i) => `<i class="${i===0?'one':''}"></i>`).join('');
   syncControls(); renderSheet(); renderReport(); renderDrill();

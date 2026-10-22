@@ -51,20 +51,21 @@ const rhRes = (P, beats) => P.length % beats === 0 ? P.length / beats : 2;
 const parts = tok => tok === '-' ? [] : tok.split('+').filter(p => PART_KEY[p] || FRET.test(p));
 
 function parseSong(text){
-  const song = {title:'未命名', bpm:80, beats:4, key:'', capo:0, lines:[], bars:[], changes:[], sections:[], warnings:[]};
+  const song = {title:'未命名', source:'', bpm:80, beats:4, key:'', capo:0, lines:[], bars:[], changes:[], sections:[], warnings:[]};
   let sec = null, fresh = true, rh = null, meter = null, at = 0;
   const newSec = name => { sec = {name, bars:[], slots:0, filled:0, avail:null}; song.sections.push(sec); };
   for (const raw of text.split('\n')){
     const line = raw.trim();
     if (!line || line.startsWith('//')) continue;
     if (!line.includes('|')){
-      const m = line.match(/^(title|bpm|beats|key|capo|rh|pattern|pick|标题|速度|拍号|调|变调夹|右手|扫弦|分解)\s*[:：]\s*(.*)$/i);
+      const m = line.match(/^(title|bpm|beats|key|capo|source|rh|pattern|pick|标题|速度|拍号|调|变调夹|来源|右手|扫弦|分解)\s*[:：]\s*(.*)$/i);
       if (m){
         const k = m[1].toLowerCase(), v = m[2].trim();
         if (k==='title'||k==='标题') song.title = v;
         else if (k==='bpm'||k==='速度') song.bpm = Math.max(30, Math.min(240, parseInt(v)||80));
         else if (k==='beats'||k==='拍号'){ const n = Math.max(1, Math.min(7, parseInt(v)||4)); if (song.bars.length) meter = n; else song.beats = n; }
         else if (k==='key'||k==='调') song.key = v;
+        else if (k==='source'||k==='来源') song.source = v;
         else if (k==='capo'||k==='变调夹') song.capo = parseInt(v)||0;
         else rh = parseRH(v);
         continue;

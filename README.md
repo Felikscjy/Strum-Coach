@@ -46,7 +46,7 @@ node scripts/check-charts.mjs              # 检查内置的歌
 node scripts/check-charts.mjs 我的歌.txt   # 检查谱面文件
 ```
 
-**关于版权**：谱面只记节奏、和弦和段落结构，歌词位置用 `*` 占位。歌词由使用者自己粘贴，只保存在本地浏览器。请不要把已发行歌曲的歌词、或者从别人付费/版权谱上逐音扒下来的编配提交到公开仓库，这类谱面放在 `songs.private.js` 里自己用即可。欢迎提交原创练习曲和公有领域的歌。
+**关于版权**：谱面只记节奏、和弦和段落结构，歌词位置用 `*` 占位。歌词由使用者自己粘贴，只保存在本地浏览器。内置的《程艾影》《爱错》转写自各自署名的吉他谱（大老师 / da-tab；小LV吉他 / 革命吉他），已获谱面作者授权作为演示收录，页面上会显示来源。提交新谱时请确认你有权分享它；从版权谱上扒的谱自己用的话，放在 `songs.private.js` 里即可。欢迎提交原创练习曲和公有领域的歌。
 
 ## 目录结构
 
@@ -56,7 +56,7 @@ src/style.css         样式（浅色/深色两套色板）
 src/chart.js          谱面解析、和弦指法表、右手记号
 src/app.js            播放、调度、渲染、键盘/麦克风判定、录音分析
 src/samples.js        12 个吉他采样（base64），见 NOTICE.md
-src/songs.js          公开的示例曲
+src/songs.js          内置的演示曲
 src/songs.private.js  你自己的谱（不提交）
 scripts/build.mjs     打包成单文件
 scripts/check-charts.mjs  校验谱面

@@ -15,6 +15,12 @@ Changes made for this project: 12 of the notes (E2, G2, A#2, C#3, E3, G3, A#3, C
 selected, trimmed to 2.6 seconds with a 0.8-second fade-out, mixed to mono, re-encoded as 72 kbps MP3,
 and embedded as base64 together with a measured attack offset. See `scripts/make-samples.py`.
 
+## Demo charts (`src/songs.js`)
+
+The rhythm, chord and arrangement data for 程艾影 and 爱错 were transcribed from guitar scores by
+大老师 (da-tab) and 小LV吉他 / 革命吉他 respectively, and are included as demos with the permission of
+the score authors. They are not covered by the MIT license of this project. No lyrics are included.
+
 ## Fonts
 
 The page loads Barlow Condensed, Noto Sans SC and Noto Serif SC from Google Fonts at runtime
