@@ -6,6 +6,7 @@
 //   node scripts/build.mjs --fragment   -> body-only fragment (for hosts that add their own <html> skeleton)
 //   node scripts/build.mjs --out path   -> custom output path
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -16,10 +17,23 @@ const outIdx = argv.indexOf('--out');
 const out = resolve(root, outIdx >= 0 ? argv[outIdx + 1] : 'dist/strum-coach.html');
 const read = f => readFileSync(resolve(root, f), 'utf8');
 
+// Stamp index.html's src/ references with a content hash (?v=xxxxxxxx) so browsers
+// fetch a file again as soon as it changes, instead of serving a stale cached copy.
+{
+  const src = read('index.html');
+  const stamped = src.replace(/(href|src)="(src\/[^"?]+)(\?v=[^"]*)?"/g, (m, attr, f) => {
+    const p = resolve(root, f);
+    if (f.includes('.private.') || !existsSync(p)) return `${attr}="${f}"`;   // local-only files are never stamped
+    const h = createHash('sha1').update(readFileSync(p)).digest('hex').slice(0, 8);
+    return `${attr}="${f}?v=${h}"`;
+  });
+  if (stamped !== src && !has('--fragment') && !has('--private')) { writeFileSync(resolve(root, 'index.html'), stamped); console.log('stamped index.html'); }
+}
+
 let html = read('index.html');
 
-html = html.replace(/<link rel="stylesheet" href="(src\/[^"]+)">/g, (_, f) => `<style>\n${read(f)}</style>`);
-html = html.replace(/<script src="(src\/[^"]+)"[^>]*><\/script>\n?/g, (_, f) => {
+html = html.replace(/<link rel="stylesheet" href="(src\/[^"?]+)(?:\?[^"]*)?">/g, (_, f) => `<style>\n${read(f)}</style>`);
+html = html.replace(/<script src="(src\/[^"?]+)(?:\?[^"]*)?"[^>]*><\/script>\n?/g, (_, f) => {
   if (f.includes('.private.')) {
     if (!has('--private')) return '';
     if (!existsSync(resolve(root, f))) { console.warn(`skip ${f}: not found`); return ''; }

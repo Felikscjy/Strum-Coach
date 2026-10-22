@@ -277,3 +277,38 @@ textarea#lyr{min-height:160px;font-family:var(--f-lyric)}
 .ed-actions{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
 .err{color:var(--cue);font-size:13px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- phone ---------- */
+@media (max-width:600px){
+  body{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px))}
+  .brand em{display:none}
+  .title h1{font-size:22px}
+  header{gap:10px}
+  .modeSw{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}
+  .modeSw button{padding:10px 4px}
+  /* the transport sits at the bottom, under the thumb */
+  .transport{position:fixed;left:0;right:0;bottom:0;z-index:20;margin:0;flex-wrap:nowrap;justify-content:space-between;gap:8px;
+    background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(0,0,0,.08);
+    padding:10px max(12px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px))}
+  .transport .beats{display:none}
+  .play{padding:12px 18px;flex:none}
+  .demoBtn{padding:6px 10px 6px 8px;flex:none}
+  .demoBtn svg{width:20px;height:20px}
+  .bpm{padding:3px 4px 3px 10px;flex:none}
+  .bpm b{font-size:21px}
+  .bpm span{display:none}
+  .bpm button{width:34px;height:34px}
+  .rail{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .board{padding:14px 12px}
+  .ftracks{grid-template-columns:40px minmax(0,1fr)}
+  .fover{left:40px}
+  .tabl kbd{display:none}
+  .tn{min-width:17px;height:17px;border-width:1.5px;font-size:11px;line-height:14px;padding:0 2px}
+  .tab-t .ts{width:6px}
+  .ts b,.tt b{font-size:10px}
+  .fbeat{font-size:11px} .fbeat.and{font-size:9px}
+  .pads{grid-template-columns:repeat(auto-fit,minmax(56px,1fr))}
+  .pad{height:64px}
+  .controls{grid-template-columns:1fr}
+  .sheet{padding:12px}
+}

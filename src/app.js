@@ -448,7 +448,7 @@ function flashPad(key, cls){
 function updateStats(){
   const mic = S.input === 'mic';
   const n = stats.good + stats.ok + stats.miss + stats.wrong;
-  if (!n && !stats.extra){ $('stats').innerHTML = mic ? (playing ? '跟着谱弹，工具在听' : '戴上耳机，按 <kbd>Enter</kbd> 开始弹') : (playing ? '跟着圆点按键' : '按 <kbd>空格</kbd> 开始，跟着圆点按键'); return; }
+  if (!n && !stats.extra){ $('stats').innerHTML = mic ? (playing ? '跟着谱弹，工具在听' : (matchMedia('(pointer:coarse)').matches ? '戴上耳机，点「开始」再弹' : '戴上耳机，按 <kbd>Enter</kbd> 开始弹')) : (playing ? '跟着圆点按键' : (matchMedia('(pointer:coarse)').matches ? '点「开始」，跟着圆点点下面的按钮' : '按 <kbd>空格</kbd> 开始，跟着圆点按键')); return; }
   const avg = stats.offs.length ? Math.round(stats.offs.reduce((a,b)=>a+b,0)/stats.offs.length) : 0;
   const pct = n ? Math.round((stats.good + stats.ok*0.5)/n*100) : 0;
   const tend = Math.abs(avg) < 12 ? '很稳' : avg < 0 ? '整体偏早' : '整体偏晚';
