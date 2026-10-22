@@ -906,14 +906,6 @@ window.STRUM_NEWEST = window.STRUM_NEWEST || 'cheng';
 
 </script>
 <script>
-/* 公开的演示歌词（会被提交、会出现在在线版里）。只放你有权公开的歌词，并在 NOTICE.md 里写明授权。
-   格式：键是歌曲 id（见 src/songs.js），值是按演唱顺序的歌词，标点和换行会被忽略，也可以用「## 段落名」分块。
-   最省事的填法：在页面「歌词 / 编辑谱面」里点「导出歌词文件」，把导出的内容整段粘贴替换本文件。 */
-window.STRUM_LYRICS = Object.assign(window.STRUM_LYRICS || {}, {
-});
-
-</script>
-<script>
 /* song library: public songs from songs.js, your own charts from songs.private.js (not committed) */
 const LIBRARY = [...(window.STRUM_PRIVATE_SONGS || []), ...(window.STRUM_SONGS || [])];
 if (!LIBRARY.length) LIBRARY.push({id:'empty', src:'title: 新歌\nbeats: 4\n| [C]_:4 |'});

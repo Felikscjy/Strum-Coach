@@ -4,6 +4,7 @@
 //   node scripts/build.mjs              -> dist/strum-coach.html (public songs only)
 //   node scripts/build.mjs --private    -> also include src/songs.private.js
 //   node scripts/build.mjs --fragment   -> body-only fragment (for hosts that add their own <html> skeleton)
+//   node scripts/build.mjs --with-lyrics -> also inline src/lyrics.js (only if you may redistribute those lyrics)
 //   node scripts/build.mjs --out path   -> custom output path
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -34,6 +35,7 @@ let html = read('index.html');
 
 html = html.replace(/<link rel="stylesheet" href="(src\/[^"?]+)(?:\?[^"]*)?">/g, (_, f) => `<style>\n${read(f)}</style>`);
 html = html.replace(/<script src="(src\/[^"?]+)(?:\?[^"]*)?"[^>]*><\/script>\n?/g, (_, f) => {
+  if (f === 'src/lyrics.js' && !has('--with-lyrics')) return '';   // bundled lyrics stay on the website unless asked for
   if (f.includes('.private.')) {
     if (!has('--private')) return '';
     if (!existsSync(resolve(root, f))) { console.warn(`skip ${f}: not found`); return ''; }
