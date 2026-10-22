@@ -59,11 +59,13 @@ body.drill .ly-t,body.drill .ly-t-l{display:none}
 body.mic .only-kbd{display:none!important}
 body:not(.mic) .only-mic{display:none!important}
 /* six-string TAB view */
-.track.tab-t{height:150px;background:var(--bg)}
+:root{--sg:20px;--r0:12px}
+body.touch{--sg:30px;--r0:36px}
+.track.tab-t{height:calc(var(--r0)*2 + 5*var(--sg) + 22px);background:var(--bg)}
 .tab-t .tin{background:none}
 .tl{position:absolute;left:-14px;right:-14px;height:1px;background:var(--dim)}
 .tl:nth-child(n+4){height:1.5px}
-.tabl{position:relative;height:150px}
+.tabl{position:relative;height:calc(var(--r0)*2 + 5*var(--sg) + 22px)}
 .tabl span{position:absolute;left:0;transform:translateY(-50%);font-size:12px;color:var(--muted);display:flex;gap:4px;align-items:center;white-space:nowrap}
 .tabl kbd{font-size:10px;padding:0 3px}
 .tn{position:absolute;transform:translate(-50%,-50%);min-width:21px;height:21px;padding:0 3px;border-radius:11px;border:2px solid var(--accent);background:var(--surface);
@@ -73,7 +75,7 @@ body:not(.mic) .only-mic{display:none!important}
 .tn.ok{background:var(--cue);border-color:var(--cue);color:var(--surface)}
 .tn.miss{border-color:var(--bad);border-style:dashed;color:var(--bad)}
 .tn.wrong{background:var(--bad);border-color:var(--bad);color:var(--surface)}
-.tab-t .ts,.tab-t .tg{position:absolute;top:4px;height:116px;transform:translateX(-50%);border-radius:4px}
+.tab-t .ts,.tab-t .tg{position:absolute;top:calc(var(--r0) - 8px);height:calc(5*var(--sg) + 16px);transform:translateX(-50%);border-radius:4px}
 .ts{width:8px;background:var(--accent)}
 .ts.R{background:repeating-linear-gradient(to bottom,var(--accent) 0 6px,transparent 6px 9px)}
 .ts.X{background:var(--muted)}
@@ -81,9 +83,14 @@ body:not(.mic) .only-mic{display:none!important}
 .ts.on{background:var(--cue)} .ts.good{background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .ts.ok{background:var(--cue)} .ts.miss{background:transparent;border:2px dashed var(--bad)} .ts.wrong{background:var(--bad)}
 .tg{width:2px;background:var(--dim);opacity:.55}
-.tab-t .tt{position:absolute;top:2px;transform:translate(-50%,-50%);font-size:20px;font-weight:700;color:var(--accent);line-height:1;z-index:2}
+.tab-t .tt{position:absolute;top:calc(var(--r0) - 12px);transform:translate(-50%,-50%);font-size:20px;font-weight:700;color:var(--accent);line-height:1;z-index:2}
 .tt.on,.tt.ok{color:var(--cue)} .tt.good{color:var(--accent)} .tt.miss,.tt.wrong{color:var(--bad)}
-.tab-t .tt b{top:118px}
+.tab-t .tt b{top:calc(var(--r0) + 5*var(--sg) + 6px)}
+.tl.hit{background:var(--cue);height:3px!important;margin-top:-1px}
+body.touch.keys:not(.mic) .tab-t{touch-action:none;cursor:pointer}
+body.touch.keys:not(.mic) .pads{display:none!important}
+.touchhint{font-size:12px;color:var(--muted);text-align:center}
+body:not(.touch) .touchhint,body.mic .touchhint{display:none}
 .panel[hidden]{display:none}
 .micbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .meterbox{width:120px;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
@@ -381,6 +388,7 @@ textarea#lyr{min-height:160px;font-family:var(--f-lyric)}
         <div class="ftracks" id="ftracks"></div>
         <div class="only-keys fb" id="fb"></div>
         <div class="pads only-keys only-kbd" id="pads"></div>
+        <div class="touchhint only-keys">点一下弦就是拨这根弦；在六线谱上往下滑是下扫，往上滑是上扫；点 1 弦上方的空白处是击弦</div>
       </div>
     </div>
     <aside class="rail">
@@ -1289,7 +1297,7 @@ function defaultPart(key){
   if (key==='J') return (strumKeys === 'two' && all.includes('U') && !all.includes('3')) ? 'U' : (all.includes('3') ? '3' : (all.includes('U') ? 'U' : '3'));
   return key==='K' ? '2' : '1';
 }
-function onKey(key, ts){
+function onKey(key, ts, hint){
   ensureCtx();
   let match = null, bd = 9;
   const judging = playing && judgingOn() && S.input !== 'mic';
@@ -1298,7 +1306,7 @@ function onKey(key, ts){
     for (const e of expected){ if (e.judged || e.key !== key) continue; const d = t - e.t; if (Math.abs(d) < Math.abs(bd)){ bd = d; match = e; } }
     if (match && Math.abs(bd) > WIN) match = null;
   }
-  sound(match ? match.part : defaultPart(key), view.now, ctx.currentTime, 0.5);
+  sound(match ? match.part : (hint || defaultPart(key)), view.now, ctx.currentTime, 0.5);
   if (!judging){ flashPad(key,'hit'); return; }
   if (match){
     match.judged = true;
@@ -1356,7 +1364,7 @@ function flashPad(key, cls){
 function updateStats(){
   const mic = S.input === 'mic';
   const n = stats.good + stats.ok + stats.miss + stats.wrong;
-  if (!n && !stats.extra){ $('stats').innerHTML = mic ? (playing ? '跟着谱弹，工具在听' : (matchMedia('(pointer:coarse)').matches ? '戴上耳机，点「开始」再弹' : '戴上耳机，按 <kbd>Enter</kbd> 开始弹')) : (playing ? '跟着圆点按键' : (matchMedia('(pointer:coarse)').matches ? '点「开始」，跟着圆点点下面的按钮' : '按 <kbd>空格</kbd> 开始，跟着圆点按键')); return; }
+  if (!n && !stats.extra){ $('stats').innerHTML = mic ? (playing ? '跟着谱弹，工具在听' : (matchMedia('(pointer:coarse)').matches ? '戴上耳机，点「开始」再弹' : '戴上耳机，按 <kbd>Enter</kbd> 开始弹')) : (playing ? '跟着圆点按键' : (matchMedia('(pointer:coarse)').matches ? '点「开始」，跟着圆点在六线谱上弹' : '按 <kbd>空格</kbd> 开始，跟着圆点按键')); return; }
   const avg = stats.offs.length ? Math.round(stats.offs.reduce((a,b)=>a+b,0)/stats.offs.length) : 0;
   const pct = n ? Math.round((stats.good + stats.ok*0.5)/n*100) : 0;
   const tend = Math.abs(avg) < 12 ? '很稳' : avg < 0 ? '整体偏早' : '整体偏晚';
@@ -1705,8 +1713,9 @@ function renderFocus(bar, serial){
   }
   let rows = trackRow('拍', beatsRow, 'bt-t') + trackRow('和弦', ch, 'ch-t') + (ly ? trackRow('歌词', ly, 'ly-t') : '');
   const P = activeRH(bar);
-  const ROW = i => 12 + i*20;          // TAB row (0 = string 1, top) -> px
-  const mic = S.input === 'mic';
+  const tsg = touchUI ? 30 : 20, tr0 = touchUI ? 36 : 12;
+  const ROW = i => tr0 + i*tsg;          // TAB row (0 = string 1, top) -> px
+  const mic = S.input === 'mic' || touchUI;   // no keyboard letters when listening or on touch screens
   const capS = {S:'␣', F:'F', J:'J', K:'K', L:'L'};
   let labels = '';
   for (let i=0;i<6;i++){
@@ -1888,6 +1897,36 @@ document.addEventListener('keydown', e => {
   }
   if (e.code === 'Space'){ e.preventDefault(); playing ? stop() : start(); }
 });
+/* touch: the TAB is the instrument — tap a string to pluck it, swipe down / up to strum */
+const touchUI = matchMedia('(pointer:coarse)').matches;
+document.body.classList.toggle('touch', touchUI);
+(function setupTabTouch(){
+  const g = {};
+  const box = () => $('ftracks').querySelector('.tab-t .tin');
+  const flash = row => { const l = $('ftracks').querySelectorAll('.tab-t .tl')[row]; if (!l) return; l.classList.add('hit'); setTimeout(() => l.classList.remove('hit'), 120); };
+  $('ftracks').addEventListener('pointerdown', e => {
+    if (S.practice === 'view' || S.input === 'mic') return;
+    const tin = e.target.closest('.tab-t') && box(); if (!tin) return;
+    e.preventDefault();
+    const r = tin.getBoundingClientRect(), sg = touchUI ? 30 : 20, r0 = touchUI ? 36 : 12;
+    g[e.pointerId] = {y0:e.clientY, ts:e.timeStamp, rel:e.clientY - r.top, done:false, sg, r0};
+  });
+  const finish = (e, moved) => {
+    const p = g[e.pointerId]; if (!p || p.done) return; p.done = true;
+    if (moved){
+      const dir = e.clientY > p.y0 ? 'D' : 'U';
+      onKey(keyOf(dir), p.ts, dir);
+      return;
+    }
+    if (p.rel < p.r0 - p.sg*0.45){ onKey(keyOf('T'), p.ts, 'T'); return; }      // above string 1: slap
+    const row = Math.max(0, Math.min(5, Math.round((p.rel - p.r0) / p.sg)));
+    flash(row);
+    onKey(PART_KEY[String(row + 1)], p.ts, String(row + 1));
+  };
+  $('ftracks').addEventListener('pointermove', e => { const p = g[e.pointerId]; if (p && !p.done && Math.abs(e.clientY - p.y0) > 14) finish(e, true); });
+  $('ftracks').addEventListener('pointerup', e => { finish(e, false); delete g[e.pointerId]; });
+  $('ftracks').addEventListener('pointercancel', e => { delete g[e.pointerId]; });
+})();
 $('pads').addEventListener('pointerdown', e => {
   const p = e.target.closest('.pad'); if (!p) return;
   e.preventDefault(); onKey(p.dataset.k, e.timeStamp);

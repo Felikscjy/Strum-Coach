@@ -381,7 +381,7 @@ function defaultPart(key){
   if (key==='J') return (strumKeys === 'two' && all.includes('U') && !all.includes('3')) ? 'U' : (all.includes('3') ? '3' : (all.includes('U') ? 'U' : '3'));
   return key==='K' ? '2' : '1';
 }
-function onKey(key, ts){
+function onKey(key, ts, hint){
   ensureCtx();
   let match = null, bd = 9;
   const judging = playing && judgingOn() && S.input !== 'mic';
@@ -390,7 +390,7 @@ function onKey(key, ts){
     for (const e of expected){ if (e.judged || e.key !== key) continue; const d = t - e.t; if (Math.abs(d) < Math.abs(bd)){ bd = d; match = e; } }
     if (match && Math.abs(bd) > WIN) match = null;
   }
-  sound(match ? match.part : defaultPart(key), view.now, ctx.currentTime, 0.5);
+  sound(match ? match.part : (hint || defaultPart(key)), view.now, ctx.currentTime, 0.5);
   if (!judging){ flashPad(key,'hit'); return; }
   if (match){
     match.judged = true;
@@ -448,7 +448,7 @@ function flashPad(key, cls){
 function updateStats(){
   const mic = S.input === 'mic';
   const n = stats.good + stats.ok + stats.miss + stats.wrong;
-  if (!n && !stats.extra){ $('stats').innerHTML = mic ? (playing ? '跟着谱弹，工具在听' : (matchMedia('(pointer:coarse)').matches ? '戴上耳机，点「开始」再弹' : '戴上耳机，按 <kbd>Enter</kbd> 开始弹')) : (playing ? '跟着圆点按键' : (matchMedia('(pointer:coarse)').matches ? '点「开始」，跟着圆点点下面的按钮' : '按 <kbd>空格</kbd> 开始，跟着圆点按键')); return; }
+  if (!n && !stats.extra){ $('stats').innerHTML = mic ? (playing ? '跟着谱弹，工具在听' : (matchMedia('(pointer:coarse)').matches ? '戴上耳机，点「开始」再弹' : '戴上耳机，按 <kbd>Enter</kbd> 开始弹')) : (playing ? '跟着圆点按键' : (matchMedia('(pointer:coarse)').matches ? '点「开始」，跟着圆点在六线谱上弹' : '按 <kbd>空格</kbd> 开始，跟着圆点按键')); return; }
   const avg = stats.offs.length ? Math.round(stats.offs.reduce((a,b)=>a+b,0)/stats.offs.length) : 0;
   const pct = n ? Math.round((stats.good + stats.ok*0.5)/n*100) : 0;
   const tend = Math.abs(avg) < 12 ? '很稳' : avg < 0 ? '整体偏早' : '整体偏晚';
@@ -797,8 +797,9 @@ function renderFocus(bar, serial){
   }
   let rows = trackRow('拍', beatsRow, 'bt-t') + trackRow('和弦', ch, 'ch-t') + (ly ? trackRow('歌词', ly, 'ly-t') : '');
   const P = activeRH(bar);
-  const ROW = i => 12 + i*20;          // TAB row (0 = string 1, top) -> px
-  const mic = S.input === 'mic';
+  const tsg = touchUI ? 30 : 20, tr0 = touchUI ? 36 : 12;
+  const ROW = i => tr0 + i*tsg;          // TAB row (0 = string 1, top) -> px
+  const mic = S.input === 'mic' || touchUI;   // no keyboard letters when listening or on touch screens
   const capS = {S:'␣', F:'F', J:'J', K:'K', L:'L'};
   let labels = '';
   for (let i=0;i<6;i++){
@@ -980,6 +981,36 @@ document.addEventListener('keydown', e => {
   }
   if (e.code === 'Space'){ e.preventDefault(); playing ? stop() : start(); }
 });
+/* touch: the TAB is the instrument — tap a string to pluck it, swipe down / up to strum */
+const touchUI = matchMedia('(pointer:coarse)').matches;
+document.body.classList.toggle('touch', touchUI);
+(function setupTabTouch(){
+  const g = {};
+  const box = () => $('ftracks').querySelector('.tab-t .tin');
+  const flash = row => { const l = $('ftracks').querySelectorAll('.tab-t .tl')[row]; if (!l) return; l.classList.add('hit'); setTimeout(() => l.classList.remove('hit'), 120); };
+  $('ftracks').addEventListener('pointerdown', e => {
+    if (S.practice === 'view' || S.input === 'mic') return;
+    const tin = e.target.closest('.tab-t') && box(); if (!tin) return;
+    e.preventDefault();
+    const r = tin.getBoundingClientRect(), sg = touchUI ? 30 : 20, r0 = touchUI ? 36 : 12;
+    g[e.pointerId] = {y0:e.clientY, ts:e.timeStamp, rel:e.clientY - r.top, done:false, sg, r0};
+  });
+  const finish = (e, moved) => {
+    const p = g[e.pointerId]; if (!p || p.done) return; p.done = true;
+    if (moved){
+      const dir = e.clientY > p.y0 ? 'D' : 'U';
+      onKey(keyOf(dir), p.ts, dir);
+      return;
+    }
+    if (p.rel < p.r0 - p.sg*0.45){ onKey(keyOf('T'), p.ts, 'T'); return; }      // above string 1: slap
+    const row = Math.max(0, Math.min(5, Math.round((p.rel - p.r0) / p.sg)));
+    flash(row);
+    onKey(PART_KEY[String(row + 1)], p.ts, String(row + 1));
+  };
+  $('ftracks').addEventListener('pointermove', e => { const p = g[e.pointerId]; if (p && !p.done && Math.abs(e.clientY - p.y0) > 14) finish(e, true); });
+  $('ftracks').addEventListener('pointerup', e => { finish(e, false); delete g[e.pointerId]; });
+  $('ftracks').addEventListener('pointercancel', e => { delete g[e.pointerId]; });
+})();
 $('pads').addEventListener('pointerdown', e => {
   const p = e.target.closest('.pad'); if (!p) return;
   e.preventDefault(); onKey(p.dataset.k, e.timeStamp);
