@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="吉他弹唱练习工具：左手换和弦提醒、右手节奏型练习、歌词按真实节奏对拍，可以用键盘或吉他声音判定。">
+<title>弹唱换弦教练</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&display=swap">
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar">
+    <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><path class="pick" d="M16 3c6.6 0 11.5 2.6 11.5 7.4 0 6.4-6.3 14.6-9.6 17.8a2.7 2.7 0 0 1-3.8 0C10.8 25 4.5 16.8 4.5 10.4 4.5 5.6 9.4 3 16 3z"/><path class="str" d="M11 9v13M16 8v16M21 9v13"/></svg>
+      <span>弹唱换弦教练</span><em>左手换弦 · 右手节奏 · 歌词对拍</em></div>
+    <div class="brand-r">
+      <button class="ghost" id="helpBtn" aria-expanded="false">怎么用</button>
+      <button class="ghost" id="themeBtn" hidden>主题：自动</button>
+    </div>
+  </div>
+  <div class="guide" id="guide" hidden>
+    <div><b>1 选一段</b><span>在下面的「整首谱面」点两个小节，只循环这一段。先把速度降到 70%。</span></div>
+    <div><b>2 跟唱</b><span>看右边的换弦提醒，卡片变橙色时左手就出发，别等唱到那个字。</span></div>
+    <div><b>3 练右手</b><span>「节奏练习」只练一个节奏型；「右手按键」跟着六线谱用键盘或吉他判定。</span></div>
+    <button class="ghost" id="guideClose">知道了</button>
+  </div>
+  <header>
+    <div class="title">
+      <div class="title-row"><h1 id="songTitle"></h1>
+        <select class="songSel" id="songSel" aria-label="选择歌曲"></select></div>
+      <span class="meta" id="songMeta"></span></div>
+    <div class="transport">
+      <div class="seg-btns modeSw" id="practiceBtns">
+        <button data-v="view" aria-pressed="true">跟唱</button><button data-v="keys" aria-pressed="false">右手按键</button><button data-v="drill" aria-pressed="false">节奏练习</button></div>
+      <button class="play" id="playBtn" aria-label="开始"><svg viewBox="0 0 10 10"><path d="M1 0l9 5-9 5z"/></svg><span>开始</span></button>
+      <div class="bpm"><b id="bpmVal">80</b><span>BPM</span>
+        <button id="bpmDown" aria-label="减慢">−</button><button id="bpmUp" aria-label="加快">+</button></div>
+      <div class="beats" id="beatDots"></div>
+    </div>
+  </header>
+
+  <section class="stage">
+    <div class="board" id="board">
+      <div class="board-top"><span class="sec" id="secName"></span><span class="pos" id="posText"></span></div>
+      <div class="drill only-drill">
+        <div class="drow"><span class="dl">节奏型</span><div class="chips" id="drillPats"></div></div>
+        <div class="drow"><span class="dl">和弦</span><select id="drillChord" class="ghost" aria-label="练习用的和弦"></select>
+          <span class="dl">步骤</span><div class="seg-btns" id="stageBtns">
+            <button data-v="listen" aria-pressed="true">① 先听</button><button data-v="follow" aria-pressed="false">② 跟着弹</button><button data-v="solo" aria-pressed="false">③ 自己弹</button></div>
+          <label class="chk"><input type="checkbox" id="autoSpeed" checked>连续弹干净 4 小节自动 +4 BPM</label></div>
+        <div class="drow"><span class="dl">最近</span><div class="hist" id="drillHist"></div><span class="hint" id="drillInfo"></span></div>
+      </div>
+      <div id="countin" class="countin" hidden></div>
+      <div class="line no-drill" id="lineNow"></div>
+      <div class="line next no-drill" id="lineNext"></div>
+      <div class="focus">
+        <div class="focus-top"><b>本小节放大</b>
+          <span class="stats only-keys" id="stats"></span></div>
+        <div class="micbar only-keys only-mic"><span id="micState">麦克风未开启</span><span class="meterbox"><i id="micLevel"></i></span>
+          <button class="ghost" id="micCal">测延迟</button><span id="micCalVal"></span>
+          <label class="ghost" for="recFile" style="cursor:pointer">上传录音分析</label><input type="file" id="recFile" accept="audio/*,video/*" hidden></div>
+        <div class="panel" id="panel" hidden></div>
+        <div class="ftracks" id="ftracks"></div>
+        <div class="only-keys fb" id="fb"></div>
+        <div class="pads only-keys only-kbd" id="pads"></div>
+      </div>
+    </div>
+    <aside class="rail">
+      <div class="card now"><div class="lbl"><span>现在按着</span></div>
+        <svg class="dia" id="diaNow" viewBox="0 0 110 150"></svg>
+        <div class="name" id="nameNow"></div><div class="sub" id="subNow"></div></div>
+      <div class="card next no-drill" id="cardNext"><div class="lbl"><span>下一个和弦</span><span id="leftBeats"></span></div>
+        <svg class="dia" id="diaNext" viewBox="0 0 110 150"></svg>
+        <div class="name" id="nameNext"></div><div class="sub" id="subNext"></div>
+        <div class="meter"><i id="meter"></i></div></div>
+    </aside>
+  </section>
+
+  <section class="controls">
+    <div class="grp"><h4>节拍</h4><div class="gi">
+      <div class="ctl no-drill"><span>速度</span><input type="range" id="speed" min="50" max="120" step="5" value="100"><b class="mono" id="speedVal">100%</b></div>
+      <label class="chk no-drill"><input type="checkbox" id="trainer">每循环 +5%</label>
+      <label class="chk"><input type="checkbox" id="countIn" checked>预备一小节</label>
+      <label class="chk no-drill"><input type="checkbox" id="repeat" checked>循环</label>
+      <label class="chk only-view"><input type="checkbox" id="eighths">八分点击</label>
+    </div></div>
+    <div class="grp no-drill"><h4>左手提示</h4><div class="gi">
+      <div class="ctl"><span>换弦提醒</span><div class="seg-btns" id="warnBtns">
+        <button data-v="1" aria-pressed="false">提前1拍</button><button data-v="2" aria-pressed="true">提前2拍</button></div></div>
+      <label class="chk"><input type="checkbox" id="cueSound" checked>提示音</label>
+      <div class="ctl"><span>显示</span><div class="seg-btns" id="modeBtns">
+        <button data-v="all" aria-pressed="true">全部</button><button data-v="lyrics" aria-pressed="false">藏和弦</button><button data-v="chords" aria-pressed="false">藏歌词</button></div></div>
+    </div></div>
+    <div class="grp no-drill"><h4>右手</h4><div class="gi">
+      <div class="ctl"><span>右手型</span><input class="pat" id="rhOverride" placeholder="按谱面" aria-label="覆盖右手节奏型">
+        <select id="rhPreset" aria-label="常用右手型" class="ghost">
+          <option value="">常用…</option>
+          <option value="__chart">按谱面</option>
+          <option value="B 3 2 3 1 3 2 3">分解 B 3 2 3 1 3 2 3</option>
+          <option value="B 4 2 - B 4 2 3">分解 B 4 2 - B 4 2 3</option>
+          <option value="B 3 2 1">四分慢练 B 3 2 1</option>
+          <option value="B+1 3 2 3 B+1 3 2 3">带捏弦</option>
+          <option value="D-DU-UDU">扫弦 D-DU-UDU</option>
+          <option value="D---D-DUD-D-D-DU">十六分扫弦</option>
+          <option value="D-D-D-D-">四分全下</option>
+        </select></div>
+      <label class="chk"><input type="checkbox" id="demo">伴奏示范</label>
+    </div></div>
+    <div class="grp only-keys"><h4>判定</h4><div class="gi">
+      <div class="ctl"><div class="seg-btns" id="inputBtns">
+        <button data-v="keys" aria-pressed="true">键盘</button><button data-v="mic" aria-pressed="false">听吉他（麦克风）</button></div></div>
+      <div class="ctl only-mic"><span>灵敏度</span><input type="range" id="sens" min="1" max="10" step="1" value="6"><b class="mono" id="sensVal">6</b></div>
+      <div class="ctl only-kbd"><span>扫弦按键</span><div class="seg-btns" id="strumBtns">
+        <button data-v="two" aria-pressed="true">双手 F↓ J↑</button><button data-v="one" aria-pressed="false">一键 空格</button></div></div>
+      <div class="ctl only-kbd"><span>延迟补偿</span><input type="range" id="calib" min="0" max="150" step="5" value="0"><b class="mono" id="calibVal">0ms</b></div>
+    </div></div>
+  </section>
+
+  <section class="sheet no-drill">
+    <div class="sheet-top"><h2>整首谱面</h2>
+      <span class="hint" id="loopText"></span>
+      <button class="ghost" id="loopAll">练整首</button></div>
+    <div class="rows" id="rows"></div>
+  </section>
+
+  <details class="editor no-drill" id="editor">
+    <summary>歌词 / 编辑谱面</summary>
+    <div class="ed">
+      <div>
+        <label for="lyr">歌词：按演唱顺序粘贴，会依次填进谱面的空位，括号里的和声会自动跳过。也可以用 <code>## 段落名</code> 分块，只填同名段落（<code>## 副歌</code> 会填所有副歌）。</label>
+        <textarea id="lyr" spellcheck="false" placeholder="## 主歌1&#10;……&#10;## 副歌&#10;……"></textarea>
+        <div class="report" id="report"></div>
+        <label for="src">谱面</label>
+        <textarea id="src" spellcheck="false"></textarea>
+        <div class="ed-actions">
+          <button class="play" id="apply" style="padding:7px 16px">保存并应用</button>
+          <button class="ghost" id="saveAs">另存为新歌</button>
+          <button class="ghost" id="revert">恢复原谱</button>
+          <button class="ghost" id="del">删除这首</button>
+          <label class="ghost" for="chartFile" style="cursor:pointer">导入谱面文件</label><input type="file" id="chartFile" accept=".txt,.chart,text/plain" hidden>
+          <button class="ghost" id="copyChart">复制谱面</button>
+          <button class="ghost" id="dlChart" hidden>下载谱面</button>
+          <span class="err" id="err"></span></div>
+      </div>
+      <div class="help">
+        <div>新谱子直接发给 Claude 转换即可。格式说明：</div>
+        <pre>title: 歌名
+key: #C
+capo: 1
+bpm: 72
+beats: 4
+## 主歌1
+rh: B 4 2 - B 4 2 3
+| [C]_:1 *:0.5 *:0.5 [F@3]*:2 |
+| [G]*:1.5 *:0.5 -:2 {B 4 3 2 1 2 3 2} |
+## 副歌
+rh: D---D-DUD-D-D-DU</pre>
+        <div><code>字:时值</code> 时值以拍为单位：<code>0.5</code> 八分，<code>0.25</code> 十六分，<code>1.5</code> 附点四分，<code>1/3</code> 三连音。</div>
+        <div><code>*</code> 歌词空位，<code>_</code> 休止，<code>-</code> 延长上一个字（连音、拖腔，可跨小节）。</div>
+        <div><code>[G]</code> 在下一个字的位置换和弦，<code>[G@3]</code> 在第 3 拍换（可以落在字中间）。</div>
+        <div><code>rh:</code> 设定本段右手型，<code>{…}</code> 只改这一小节。每格一个音：<code>B</code> 根音，<code>4 5 6</code> 拇指弹的低音弦，<code>3 2 1</code> 弦号，<code>D</code> 下扫（按键 F），<code>U</code> 上扫（按键 J），<code>T</code> 击弦，<code>R</code> 慢扫琶音，<code>X</code> 切音，<code>-</code> 空，<code>B+1</code> 同时。8 格是八分，16 格是十六分。</div>
+        <div>旋律音用 <code>弦号f品位</code>：<code>1f3</code> 是 1 弦 3 品，可以和别的音用 <code>+</code> 同时弹。</div>
+        <div>中途变拍号：在小节前单独一行写 <code>beats: 2</code>，之后的小节都按 2/4，再写 <code>beats: 4</code> 改回来。</div>
+        <div>第一小节不满拍会当作弱起自动靠右。小节拍数不对会在上面标红。</div>
+        <div>快捷键：<kbd>Enter</kbd> 开始/停止，<kbd>Esc</kbd> 停止；跟唱模式下空格也能开始/停止。</div>
+      </div>
+    </div>
+  </details>
+  <footer class="foot">
+    <span>弹唱换弦教练 · <a href="https://github.com/Felikscjy/strum-coach" target="_blank" rel="noopener">开源</a>，MIT 许可 · Jingyang Chen</span>
+    <span>吉他音色采样：<a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a>（CC BY 3.0，已裁剪并转为单声道）</span>
+    <span>谱面里只记节奏与和弦，不附带歌词。</span>
+  </footer>
+</div>
+<script src="src/samples.js"></script>
+<script src="src/chart.js"></script>
+<script src="src/songs.js"></script>
+<script src="src/songs.private.js" onerror="this.remove()"></script>
+<script src="src/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "strum-coach",
+  "version": "1.0.0",
+  "description": "吉他弹唱练习工具：换和弦提醒、右手节奏、歌词对拍、键盘或吉他声音判定",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:private": "node scripts/build.mjs --private",
+    "check": "node scripts/check-charts.mjs"
+  }
+}
