@@ -141,7 +141,10 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
 .play{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;background:var(--accent);color:var(--surface);padding:10px 22px;font-weight:700;font-size:15px}
 .play svg{width:14px;height:14px;fill:currentColor}
 .bpm{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 14px}
-.bpm b{font-family:var(--f-display);font-size:24px;font-weight:600;min-width:2.4ch;text-align:right;font-variant-numeric:tabular-nums}
+.bpmIn{width:2.6ch;border:0;background:transparent;font-family:var(--f-display);font-size:24px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);padding:0;-moz-appearance:textfield;appearance:textfield;border-radius:6px}
+.bpmIn::-webkit-outer-spin-button,.bpmIn::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.bpmIn:focus{background:var(--bg);outline:2px solid var(--accent)}
+.bpm button{touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .bpm span{color:var(--muted);font-size:12px}
 .bpm button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:transparent;font-size:16px;line-height:1}
 .beats{display:flex;gap:6px}
@@ -158,6 +161,19 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
 @media (max-width:860px){.stage{grid-template-columns:1fr}.rail{order:-1}}
 .board{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
 .board-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.board-top{align-items:center}
+.foot{display:flex;align-items:center;gap:8px;margin-left:auto;margin-right:12px}
+.foot svg{width:62px;height:38px;overflow:visible}
+.foot .ground{stroke:var(--line);stroke-width:2;stroke-linecap:round}
+.foot .shoe{fill:var(--accent)}
+.foot .sole{fill:var(--ink);opacity:.75}
+.foot .lace{stroke:var(--surface);stroke-width:1.6;stroke-linecap:round;fill:none}
+.foot.stomp .shoe{fill:var(--cue)}
+.foot.stomp .ground{stroke:var(--cue)}
+.footTxt{display:flex;flex-direction:column;align-items:center;line-height:1.05;min-width:2.2em}
+.footTxt b{font-family:var(--f-display);font-size:20px;font-weight:700;color:var(--ink)}
+.footTxt em{font-style:normal;font-size:12px;color:var(--muted)}
+.foot.stomp .footTxt b,.foot.stomp .footTxt em{color:var(--cue)}
 .sec{font-size:12px;letter-spacing:.12em;color:var(--accent);font-weight:700}
 .pos{font-family:var(--f-display);font-size:16px;color:var(--muted);font-variant-numeric:tabular-nums}
 .line{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
@@ -313,7 +329,7 @@ textarea#lyr{min-height:160px;font-family:var(--f-lyric)}
   .demoBtn{padding:6px 10px 6px 8px;flex:none}
   .demoBtn svg{width:20px;height:20px}
   .bpm{padding:3px 4px 3px 10px;flex:none}
-  .bpm b{font-size:21px}
+  .bpmIn{font-size:21px}
   .bpm span{display:none}
   .bpm button{width:34px;height:34px}
   .rail{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
@@ -358,7 +374,7 @@ textarea#lyr{min-height:160px;font-family:var(--f-lyric)}
     <div class="transport">
       <button class="demoBtn no-drill" id="demoBtn" aria-pressed="false" title="让工具把右手弹出来给你听"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="w" d="M16 8.5a4.5 4.5 0 0 1 0 7M18.5 6a8 8 0 0 1 0 12"/></svg><span><b>伴奏示范</b><small id="demoState">关</small></span></button>
       <button class="play" id="playBtn" aria-label="开始"><svg viewBox="0 0 10 10"><path d="M1 0l9 5-9 5z"/></svg><span>开始</span></button>
-      <div class="bpm"><b id="bpmVal">80</b><span>BPM</span>
+      <div class="bpm"><input id="bpmVal" class="bpmIn" type="number" inputmode="numeric" min="30" max="240" step="1" value="80" aria-label="速度 BPM，点一下可以直接输入"><span>BPM</span>
         <button id="bpmDown" aria-label="减慢">−</button><button id="bpmUp" aria-label="加快">+</button></div>
       <div class="beats" id="beatDots"></div>
     </div>
@@ -366,7 +382,13 @@ textarea#lyr{min-height:160px;font-family:var(--f-lyric)}
 
   <section class="stage">
     <div class="board" id="board">
-      <div class="board-top"><span class="sec" id="secName"></span><span class="pos" id="posText"></span></div>
+      <div class="board-top"><span class="sec" id="secName"></span>
+        <div class="foot" id="foot" title="脚跟着打拍子：拍点踩下，半拍抬起">
+          <svg viewBox="0 0 66 40" aria-hidden="true"><line class="ground" x1="2" y1="37" x2="64" y2="37"/>
+            <g id="footShoe"><path class="shoe" d="M7 32V15q0-4 4-4h9l5 6q6 3 14 4q15 2 20 9v2z"/><path class="lace" d="M24 17l3 4M29 19l2 4M34 20l1 4"/><rect class="sole" x="5" y="31" width="56" height="6" rx="3"/></g></svg>
+          <span class="footTxt"><b id="footBeat">1</b><em id="footDir">踩</em></span>
+        </div>
+        <span class="pos" id="posText"></span></div>
       <div class="drill only-drill">
         <div class="drow"><span class="dl">节奏型</span><div class="chips" id="drillPats"></div></div>
         <div class="drow"><span class="dl">和弦</span><select id="drillChord" class="ghost" aria-label="练习用的和弦"></select>
@@ -488,7 +510,7 @@ rh: D---D-DUD-D-D-DU</pre>
         <div>旋律音用 <code>弦号f品位</code>：<code>1f3</code> 是 1 弦 3 品，可以和别的音用 <code>+</code> 同时弹。</div>
         <div>中途变拍号：在小节前单独一行写 <code>beats: 2</code>，之后的小节都按 2/4，再写 <code>beats: 4</code> 改回来。</div>
         <div>第一小节不满拍会当作弱起自动靠右。小节拍数不对会在上面标红。</div>
-        <div>快捷键：<kbd>Enter</kbd> 开始/停止，<kbd>Esc</kbd> 停止；跟唱模式下空格也能开始/停止。</div>
+        <div>快捷键：<kbd>Enter</kbd> 开始/停止，<kbd>Esc</kbd> 停止，<kbd>↑</kbd><kbd>↓</kbd> 速度 ±1（按住 Shift ±5）；点速度数字可以直接输入；跟唱模式下空格也能开始/停止。</div>
       </div>
     </div>
   </details>
@@ -1037,7 +1059,7 @@ function applyMode(){
     if (fromDrill || S.loopB >= song.bars.length){ S.loopA = 0; S.loopB = song.bars.length-1; S.pending = null; }
     markLoop();
   }
-  $('bpmVal').textContent = S.bpm;
+  $('bpmVal').value = S.bpm;
   view.line = -1; view.now = view.next = undefined; drawStatic(song.bars[S.loopA].start);
   renderDrillInfo();
 }
@@ -1333,7 +1355,7 @@ function evaluateBars(now){
     drill.streak = clean ? drill.streak + 1 : 0;
     if (drill.auto && drill.streak >= 4){
       drill.streak = 0;
-      if (S.bpm < baseSong.bpm){ S.bpm = Math.min(baseSong.bpm, S.bpm + 4); store.set('drillbpm:'+curId, S.bpm); $('bpmVal').textContent = S.bpm; feedback(`提速到 ${S.bpm}`, 'good'); }
+      if (S.bpm < baseSong.bpm){ S.bpm = Math.min(baseSong.bpm, S.bpm + 4); store.set('drillbpm:'+curId, S.bpm); $('bpmVal').value = S.bpm; feedback(`提速到 ${S.bpm}`, 'good'); }
       else feedback('已经是原曲速度了', 'good');
     }
     renderDrillInfo();
@@ -1759,6 +1781,7 @@ function drawStatic(beat){
   $('posText').textContent = `第 ${barI+1} 小节`;
   $('secName').textContent = song.bars[barI].section;
   [...$('beatDots').children].forEach(d => d.classList.remove('on'));
+  footRest();
   updateStats();
 }
 function markBar(barI, frac){
@@ -1792,6 +1815,7 @@ function frame(){
     const cb = song.bars[inf.count ? S.loopA : barAt(sb)], B = cb.beats;
     const bi = inf.count ? ((sb - cb.start) % B + B) % B : sb - cb.start;
     [...$('beatDots').children].forEach((d,i) => d.classList.toggle('on', i===bi));
+    footTick(frac, bi, B);
     if (inf.count){
       $('countin').hidden = false; $('countin').textContent = `预备 ${B - bi}`;
       const bar = song.bars[S.loopA];
@@ -1855,7 +1879,7 @@ function markLoop(){
 
 /* ---------- controls ---------- */
 function syncControls(){
-  $('bpmVal').textContent = S.bpm;
+  $('bpmVal').value = S.bpm;
   $('speed').value = S.speed; $('speedVal').textContent = S.speed + '%';
   $('calib').value = S.calib; $('calibVal').textContent = S.calib + 'ms';
   $('trainer').checked = S.trainer; $('cueSound').checked = S.cue; $('countIn').checked = S.countIn;
@@ -1881,6 +1905,7 @@ const KEYMAP = {Space:'S', KeyF:'F', KeyJ:'J', KeyK:'K', KeyL:'L'};
 document.addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
   if (e.code === 'Escape'){ stop(); return; }
+  if (e.code === 'ArrowUp' || e.code === 'ArrowDown'){ e.preventDefault(); setBpm(S.bpm + (e.code === 'ArrowUp' ? 1 : -1) * (e.shiftKey ? 5 : 1)); return; }
   if (e.code === 'Enter'){ e.preventDefault(); playing ? stop() : start(); return; }
   if (S.practice !== 'view' && S.input !== 'mic' && KEYMAP[e.code]){
     e.preventDefault(); if (e.repeat) return;
@@ -1924,9 +1949,35 @@ $('pads').addEventListener('pointerdown', e => {
   e.preventDefault(); onKey(p.dataset.k, e.timeStamp);
 });
 $('pads').addEventListener('click', e => e.preventDefault());
-function setBpm(v){ S.bpm = Math.max(30, Math.min(240, v)); store.set((isDrill() ? 'drillbpm:' : 'bpm:')+curId, S.bpm); $('bpmVal').textContent = S.bpm; renderDrillInfo(); }
-$('bpmDown').onclick = () => setBpm(S.bpm-4);
-$('bpmUp').onclick = () => setBpm(S.bpm+4);
+function setBpm(v){ S.bpm = Math.max(30, Math.min(240, v)); store.set((isDrill() ? 'drillbpm:' : 'bpm:')+curId, S.bpm); $('bpmVal').value = S.bpm; renderDrillInfo(); }
+// tempo: ±1 per tap, hold to keep going, or tap the number and type it
+(function bpmControls(){
+  for (const [id, d] of [['bpmDown', -1], ['bpmUp', 1]]){
+    const b = $(id); let t1 = null, t2 = null, n = 0;
+    const stopRep = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = null; };
+    b.addEventListener('pointerdown', e => {
+      e.preventDefault(); n = 0; setBpm(S.bpm + d);
+      t1 = setTimeout(() => { t2 = setInterval(() => { n++; setBpm(S.bpm + d * (n > 15 ? 5 : 1)); }, 90); }, 400);
+    });
+    for (const ev of ['pointerup','pointerleave','pointercancel']) b.addEventListener(ev, stopRep);
+    b.addEventListener('click', e => { if (e.detail === 0) setBpm(S.bpm + d); });   // keyboard activation
+  }
+  const inp = $('bpmVal');
+  const commit = () => { const v = parseInt(inp.value, 10); if (Number.isFinite(v)) setBpm(v); else inp.value = S.bpm; };
+  inp.addEventListener('change', commit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ commit(); inp.blur(); } if (e.key === 'Escape'){ inp.value = S.bpm; inp.blur(); } });
+  inp.addEventListener('focus', () => inp.select());
+})();
+/* foot: toe down on the beat, up on the "&" */
+function footTick(frac, bi, B){
+  const lift = 24 * Math.sin(Math.PI * Math.max(0, Math.min(1, frac)));
+  $('footShoe').setAttribute('transform', `rotate(${-lift.toFixed(1)} 7 37)`);
+  $('foot').classList.toggle('stomp', frac < 0.14);
+  const nearBeat = frac < 0.25 || frac >= 0.75;
+  $('footBeat').textContent = !nearBeat ? '&' : String((frac < 0.25 ? bi : (bi + 1) % B) + 1);
+  $('footDir').textContent = nearBeat ? '踩' : '抬';
+}
+function footRest(){ $('footShoe').setAttribute('transform', ''); $('foot').classList.remove('stomp'); $('footBeat').textContent = '1'; $('footDir').textContent = '踩'; }
 $('speed').oninput = e => { S.speed = +e.target.value; $('speedVal').textContent = S.speed+'%'; store.set('speed',S.speed); };
 $('calib').oninput = e => { S.calib = +e.target.value; $('calibVal').textContent = S.calib+'ms'; store.set('calib',S.calib); };
 for (const [id,key] of [['trainer','trainer'],['cueSound','cue'],['countIn','countIn'],['eighths','eighths'],['repeat','repeat']])

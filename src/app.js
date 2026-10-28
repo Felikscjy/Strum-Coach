@@ -129,7 +129,7 @@ function applyMode(){
     if (fromDrill || S.loopB >= song.bars.length){ S.loopA = 0; S.loopB = song.bars.length-1; S.pending = null; }
     markLoop();
   }
-  $('bpmVal').textContent = S.bpm;
+  $('bpmVal').value = S.bpm;
   view.line = -1; view.now = view.next = undefined; drawStatic(song.bars[S.loopA].start);
   renderDrillInfo();
 }
@@ -425,7 +425,7 @@ function evaluateBars(now){
     drill.streak = clean ? drill.streak + 1 : 0;
     if (drill.auto && drill.streak >= 4){
       drill.streak = 0;
-      if (S.bpm < baseSong.bpm){ S.bpm = Math.min(baseSong.bpm, S.bpm + 4); store.set('drillbpm:'+curId, S.bpm); $('bpmVal').textContent = S.bpm; feedback(`提速到 ${S.bpm}`, 'good'); }
+      if (S.bpm < baseSong.bpm){ S.bpm = Math.min(baseSong.bpm, S.bpm + 4); store.set('drillbpm:'+curId, S.bpm); $('bpmVal').value = S.bpm; feedback(`提速到 ${S.bpm}`, 'good'); }
       else feedback('已经是原曲速度了', 'good');
     }
     renderDrillInfo();
@@ -851,6 +851,7 @@ function drawStatic(beat){
   $('posText').textContent = `第 ${barI+1} 小节`;
   $('secName').textContent = song.bars[barI].section;
   [...$('beatDots').children].forEach(d => d.classList.remove('on'));
+  footRest();
   updateStats();
 }
 function markBar(barI, frac){
@@ -884,6 +885,7 @@ function frame(){
     const cb = song.bars[inf.count ? S.loopA : barAt(sb)], B = cb.beats;
     const bi = inf.count ? ((sb - cb.start) % B + B) % B : sb - cb.start;
     [...$('beatDots').children].forEach((d,i) => d.classList.toggle('on', i===bi));
+    footTick(frac, bi, B);
     if (inf.count){
       $('countin').hidden = false; $('countin').textContent = `预备 ${B - bi}`;
       const bar = song.bars[S.loopA];
@@ -947,7 +949,7 @@ function markLoop(){
 
 /* ---------- controls ---------- */
 function syncControls(){
-  $('bpmVal').textContent = S.bpm;
+  $('bpmVal').value = S.bpm;
   $('speed').value = S.speed; $('speedVal').textContent = S.speed + '%';
   $('calib').value = S.calib; $('calibVal').textContent = S.calib + 'ms';
   $('trainer').checked = S.trainer; $('cueSound').checked = S.cue; $('countIn').checked = S.countIn;
@@ -973,6 +975,7 @@ const KEYMAP = {Space:'S', KeyF:'F', KeyJ:'J', KeyK:'K', KeyL:'L'};
 document.addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
   if (e.code === 'Escape'){ stop(); return; }
+  if (e.code === 'ArrowUp' || e.code === 'ArrowDown'){ e.preventDefault(); setBpm(S.bpm + (e.code === 'ArrowUp' ? 1 : -1) * (e.shiftKey ? 5 : 1)); return; }
   if (e.code === 'Enter'){ e.preventDefault(); playing ? stop() : start(); return; }
   if (S.practice !== 'view' && S.input !== 'mic' && KEYMAP[e.code]){
     e.preventDefault(); if (e.repeat) return;
@@ -1016,9 +1019,35 @@ $('pads').addEventListener('pointerdown', e => {
   e.preventDefault(); onKey(p.dataset.k, e.timeStamp);
 });
 $('pads').addEventListener('click', e => e.preventDefault());
-function setBpm(v){ S.bpm = Math.max(30, Math.min(240, v)); store.set((isDrill() ? 'drillbpm:' : 'bpm:')+curId, S.bpm); $('bpmVal').textContent = S.bpm; renderDrillInfo(); }
-$('bpmDown').onclick = () => setBpm(S.bpm-4);
-$('bpmUp').onclick = () => setBpm(S.bpm+4);
+function setBpm(v){ S.bpm = Math.max(30, Math.min(240, v)); store.set((isDrill() ? 'drillbpm:' : 'bpm:')+curId, S.bpm); $('bpmVal').value = S.bpm; renderDrillInfo(); }
+// tempo: ±1 per tap, hold to keep going, or tap the number and type it
+(function bpmControls(){
+  for (const [id, d] of [['bpmDown', -1], ['bpmUp', 1]]){
+    const b = $(id); let t1 = null, t2 = null, n = 0;
+    const stopRep = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = null; };
+    b.addEventListener('pointerdown', e => {
+      e.preventDefault(); n = 0; setBpm(S.bpm + d);
+      t1 = setTimeout(() => { t2 = setInterval(() => { n++; setBpm(S.bpm + d * (n > 15 ? 5 : 1)); }, 90); }, 400);
+    });
+    for (const ev of ['pointerup','pointerleave','pointercancel']) b.addEventListener(ev, stopRep);
+    b.addEventListener('click', e => { if (e.detail === 0) setBpm(S.bpm + d); });   // keyboard activation
+  }
+  const inp = $('bpmVal');
+  const commit = () => { const v = parseInt(inp.value, 10); if (Number.isFinite(v)) setBpm(v); else inp.value = S.bpm; };
+  inp.addEventListener('change', commit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter'){ commit(); inp.blur(); } if (e.key === 'Escape'){ inp.value = S.bpm; inp.blur(); } });
+  inp.addEventListener('focus', () => inp.select());
+})();
+/* foot: toe down on the beat, up on the "&" */
+function footTick(frac, bi, B){
+  const lift = 24 * Math.sin(Math.PI * Math.max(0, Math.min(1, frac)));
+  $('footShoe').setAttribute('transform', `rotate(${-lift.toFixed(1)} 7 37)`);
+  $('foot').classList.toggle('stomp', frac < 0.14);
+  const nearBeat = frac < 0.25 || frac >= 0.75;
+  $('footBeat').textContent = !nearBeat ? '&' : String((frac < 0.25 ? bi : (bi + 1) % B) + 1);
+  $('footDir').textContent = nearBeat ? '踩' : '抬';
+}
+function footRest(){ $('footShoe').setAttribute('transform', ''); $('foot').classList.remove('stomp'); $('footBeat').textContent = '1'; $('footDir').textContent = '踩'; }
 $('speed').oninput = e => { S.speed = +e.target.value; $('speedVal').textContent = S.speed+'%'; store.set('speed',S.speed); };
 $('calib').oninput = e => { S.calib = +e.target.value; $('calibVal').textContent = S.calib+'ms'; store.set('calib',S.calib); };
 for (const [id,key] of [['trainer','trainer'],['cueSound','cue'],['countIn','countIn'],['eighths','eighths'],['repeat','repeat']])
